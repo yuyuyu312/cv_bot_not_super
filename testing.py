@@ -1,9 +1,14 @@
 import telebot;
 from telebot import types
+from docx import Document
+from docx.shared import Inches
+
+document = Document()
+
 bot = telebot.TeleBot('858195729:AAH43M75DLC0G8BkN3nfFAfs3ZHhWepQzIY');
 
-first_name = '';
-last_name = '';
+full_name = '';
+adress = '';
 age = 0;
 
 
@@ -11,42 +16,40 @@ age = 0;
 def start(message):
     if message.text.lower() == 'hi':
         user_name_data = str(message.from_user)
-        bot.send_message(message.from_user.id, "Hi! Welcome to CV Bot.\nPlease, enter Your name: ");
-        bot.register_next_step_handler(message, get_first_name);
-        with open('cv.doc', 'w') as f:
-            f.write(user_name_data + '\n')
+        bot.send_message(message.from_user.id, "Hi! Welcome to CV Bot.\nPlease, enter Your full name : ");
+        bot.register_next_step_handler(message, get_full_name);
+
     else:
         bot.send_message(message.from_user.id, 'write /hi');
 
 
-def get_first_name(message):
+def get_full_name(message):
     global first_name;
-    first_name_data = first_name = message.text;
-    bot.send_message(message.from_user.id, "Please, enter Your surname: ");
-    bot.register_next_step_handler(message, get_last_name);
-    with open('cv.doc', 'a') as f:
-        f.write(first_name_data + '\n')
+    full_name_data = full_name = message.text;
+    bot.send_message(message.from_user.id, "Please, enter Your adress: ");
+    bot.register_next_step_handler(message, get_adress);
+    document.add_heading(full_name_data)
 
 
-def get_last_name(message):
+def get_adress(message):
     global last_name;
-    last_name_data = last_name = message.text;
+    adress_data = adress = message.text;
     bot.send_message(message.from_user.id, "Please, enter Your age: ");
-    bot.register_next_step_handler(message, get_age);
-    with open('cv.doc', 'a') as f:
-        f.write(last_name_data + '\n')
+    bot.register_next_step_handler(message, get_age)
+    document.add_heading(adress_data)
 
 
 def get_age(message):
     global age;
-    while age == 0:
-        try:
-            age = int(message.text)
-            bot.send_message(message.from_user.id, "Please, enter Your email: ");
-            bot.register_next_step_handler(message, get_email);
+    # while age == 0:
+    try:
+        age = int(message.text)
+        bot.send_message(message.from_user.id, "Please, enter Your email: ");
+        bot.register_next_step_handler(message, get_email)
+        document.heading('age: ' + age, 3)
 
-        except Exception:
-            bot.send_message(message.from_user.id, 'Please, use numbers: ');
+    except Exception:
+        bot.send_message(message.from_user.id, 'Please, use numbers: ');
 
 
 def get_email(message):
@@ -54,8 +57,7 @@ def get_email(message):
     email_data = email = str(message.text);
     bot.send_message(message.from_user.id, "Please, enter Your phone number: ")
     bot.register_next_step_handler(message, get_phone_number)
-    with open('cv.doc', 'a') as f:
-        f.write(email_data + '\n')
+    document.add_heading('Email: ' + email_data,  level=1)
 
 
 def get_phone_number(message):
@@ -63,8 +65,7 @@ def get_phone_number(message):
     phone_number_data = phone_number = int(message.text);
     bot.send_message(message.from_user.id, "Please, enter Your school's name: ")
     bot.register_next_step_handler(message, get_school_name)
-    with open('cv.doc', 'a') as f:
-        f.write(str(phone_number_data) + '\n')
+    document.add_paragraph('phone_number: ' + str(phone_number_data))
 
 
 def get_school_name(message):
@@ -72,17 +73,14 @@ def get_school_name(message):
     school_name_data = school_name = str(message.text);
     bot.send_message(message.from_user.id, "Date enter school: (example: 31.12.2020)")
     bot.register_next_step_handler(message, get_enter_school_date)
-    with open('cv.doc', 'a') as f:
-        f.write(str(school_name_data) + '\n')
-
+    document.add_paragraph('scool name: ' + school_name_data)
 
 def get_enter_school_date(message):
     global enter_school_date;
     enter_school_date_data = enter_school_date = str(message.text);
     bot.send_message(message.from_user.id, "Graduation date: (example: 31.12.2020)")
     bot.register_next_step_handler(message, get_graduation_year)
-    with open('cv.doc', 'a') as f:
-        f.write(str(enter_school_date_data) + '\n')
+    document.add_paragraph('date of enter to school: ' + enter_school_date_data)
 
 
 def get_graduation_year(message):
@@ -90,8 +88,8 @@ def get_graduation_year(message):
     graduation_year_data = graduation_year = str(message.text);
     bot.send_message(message.from_user.id, "Please, enter wished job title: ")
     bot.register_next_step_handler(message, get_job_title)
-    with open('cv.doc', 'a') as f:
-        f.write(str(graduation_year_data) + '\n')
+    document.add_paragraph('yerf of graduate: ' + graduation_year_data)
+
 
 
 def get_job_title(message):
@@ -102,7 +100,7 @@ def get_job_title(message):
     keyboard.add(key_yes);
     key_no = types.InlineKeyboardButton(text='No', callback_data='no');
     keyboard.add(key_no);
-    question = 'You are ' + first_name + ' ' + last_name + ', ' + str(age) + ' years old, Wished job title is: '\
+    question = 'You are ' + full_name + ', ' + str(age) + ' years old, Wished job title is: '\
                + job_title + '. ' + 'Want to save it?'
     bot.send_message(message.from_user.id, text=question, reply_markup=keyboard)
     with open('cv.doc', 'a') as f:
@@ -119,3 +117,4 @@ def callback_worker(call):
 
 
 bot.polling(none_stop=True, interval=0)
+document.save('demo.docx')
